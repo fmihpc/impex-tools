@@ -1,0 +1,95 @@
+IMPEx FMI WEB SERVICES
+
+IMPEx-FMI-Web -- This folder contains the code of web services
+provided by the Finnish Meteorological Institute (FMI) in the
+framework of the EU-funded FP7 IMPEx project (Integrated Medium For
+Planetary Exploration, http://impex-fp7.oeaw.ac.at). These web
+services provide access to HYB and GUMICS simulation data bases at
+FMI's servers and give users simple interfaces to download simulation
+run results with user defined parameter sets.
+
+The present code is built into handling web services in the FMI's
+server environment. It is dependent on the structure of the simulation
+run database and on tools that are used to retrieve data from the
+database. As such it is not applicable to direct use by other data
+providers. However, it may be of interest to users who are designing
+their own simulation run databases and web services which are
+compatible with the IMPEx datamodel.
+
+IMPEx DATA MODEL AND WEB SERVICES
+
+IMPEx data model defines the rules how simulation run metadata will be
+organized and stored. Technically the model is implemented as an xml
+schema (http://impex-fp7.oeaw.ac.at/xsd/impex-1_0_3.xsd). Metadata for
+all simulation runs of a single simulation data provider are stored in
+an xml file (tree file) which must validate against the schema file.
+
+The IMPEx Simulation Data Model is an extension of SPASE
+(http://www.spase-group.org/data/dictionary/spase-2_2_2.pdf), used to
+describe data coming from observations of the space physics domain. It
+uses most of the elements defined in the SPASE dictionary, with
+additions necessary to describe data coming from simulations.
+
+Web services provide means of accessing the data in a simulation run
+data base. The IMPEx web services are REST-compliant and are described
+in WSDL language (version 1.1). The FMI's web services definition file
+(Methods_FMI.wsdl) lists all services (methods) provided by FMI and is
+available at http://impex-fp7.fmi.fi/ws/Methods_FMI.wsdl. The web
+services supported by FMI are:
+
+getDataPointValue
+getDataPointValueSpacecraft
+getSurface
+getMostRelevantRun
+getVOTableURL
+getFieldLine
+getParticleTrajectory
+getDataPointSpectra
+getDataPointSpectraSpacecraft
+isAlive
+
+Files:
+
+Tree_FMI_HYB.xml:     FMI's HYB simulation metadata
+Tree_FMI_GUMICS.xml:  FMI's GUMICS simulation metadata
+Methods_FMI.wsdl:     Web services description file
+Methods_FMI.php:      PHP file for processing web service requests
+config.php:           Server configuration parameters
+impex-1_0_2.xsd       IMPEx data model schema file
+
+Folders:
+
+functions/:           PHP codes for processing individual web services
+extra_functions/:     Supporting PHP code
+docs/:                Interface Control Document
+
+CODE
+
+All code is written in PHP and requires at least version 5.4. In some
+methods the PHP code makes calls to tools (written in C++) that are
+specially designed for HYB simulations. These are:
+
+hcintpol  : tool to interpolate values of physical variables at given data points from a .hc file
+ft        : tool to compute field lines
+iontracer : tool to compute particle trajectories
+
+These tools are included in the HYB model GitHub repository
+(https://github.com/fmihpc/hyb).
+
+In addition stilts (http://www.star.bris.ac.uk/~mbt/stilts/) tool is
+used in manipulating VOTable format files.
+
+CREDITS
+
+IMPEx-FMI-Web package has been written by:
+
+Lasse Häkkinen, FMI
+lasse.hakkinen@fmi.fi
+
+LICENSE
+
+This package is free software. You may modify and redistribute it
+under the terms of the GNU General Public License version 3 or any
+later version. See the COPYING file for the formal license statement.
+
+Copyright (c) 2014- Finnish Meteorological Institute

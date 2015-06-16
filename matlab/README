@@ -1,0 +1,88 @@
+IMPEX FMI MATLAB TOOLS
+
+IMPEx-FMI-Matlab -- Matlab functions for retrieving space simulation
+data from the web services provided by the Finnish Meteorological
+Institute.
+
+---- How to start --------------------------------------------------------
+
+The fastest way of getting started is to run one of the example
+scripts, then look at the script code and start modifying it to your
+taste. The example scripts are extensively commented.
+
+To get full listing of the required and optional parameters of each
+function, type help <functionName> on your Matlab command line. The
+functions are listed below in the section 'Contents: Functions'.
+
+
+---- Credits -------------------------------------------------------------
+
+IMPEx-FMI-Matlab library has been written by:
+
+  Tiera Laitinen
+  Ilmatieteen laitos / Finnish Meteorolocigal Institute
+  tiera.laitinen@fmi.fi
+  
+This package includes functions callSoapService.m and
+createSoapMessage.m, which have been taken from the Matlab-Fast-Soap
+library written by Edo Frederix. The functions are redistributed here,
+with slight modifications, as allowed by the free software GNU General
+Public License. For more information on Matlab-Fast-Soap, see the
+included file <readme_Matlab-Fast-Soap.txt>.
+
+  
+---- Contents: Examples --------------------------------------------------
+
+example1_simpledata.m
+	Shows how to retrieve and plot data at user-chosen data points and planes.
+	Uses getMostRelevantRun, makeCoordinateVotable, getDataPointValue, getSurface.
+
+example2_spacecraft.m
+	Shows how to retrieve and plot data along a satellite orbit.
+	Uses getDataPointValueSpacecraft.
+
+example3_fieldlines.m
+	Shows how to retrieve and plot magnetic field lines.
+	Uses getMostRelevantRun, getFieldLine, votread.
+
+example4_trajectories.m
+	Shows how to retrieve and plot particle trajectories in the magnetic field of a simulation.
+	Uses getMostRelevantRun, makeParticleVotable, getParticleTrajectory, votread.
+	
+example5_spectra.m	
+	Shows how to retrieve and plot particle spectra from the hybrid simulations, either at user-specified points or along a spacecraft trajectory.
+	Uses makeCoordinateVotable, getDataPointSpectra, getDataPointSpectraSpacecraft, votread.
+
+
+---- Contents: Functions -------------------------------------------------
+
+For retrieving data from the FMI IMPEx server:
+	getDataPointSpectra.m
+	getDataPointSpectraSpacecraft.m
+	getDataPointValue.m
+	getDataPointValueSpacecraft.m
+	getFieldLine.m
+	getParticleTrajectory.m
+	getSurface.m
+
+For creating temporary VOTable files from user input, to be used as input for the data retrieval functions:
+	makeCoordinateVotable.m
+	makeParticleVotable.m
+
+For selecting simulation runs:
+	getMostRelevantRun.m
+	
+For reading variables from VOTable files into Matlab:
+	votread.m
+
+Other functions: 
+	callSoapService.m
+	createSoapMessage.m
+
+LICENSE
+
+This package is free software. You may modify and redistribute it
+under the terms of the GNU General Public License version 3 or any
+later version. See the COPYING file for the formal license statement.
+
+Copyright (c) 2014- Finnish Meteorological Institute

@@ -1,0 +1,662 @@
+<?xml version='1.0' encoding='utf-8' ?>
+
+<!--
+// This file is part of the FMI IMPEx tools.
+//
+// Copyright 2014- Finnish Meteorological Institute
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<!-- Methods FMI updated 2014-07-28T11:25:00 -->
+<wsdl:definitions
+	targetNamespace='http://impex-fp7.fmi.fi'
+	name='Methods_FMI'
+	xmlns='http://impex-fp7.fmi.fi'
+	xmlns:vot='http://www.ivoa.net/xml/VOTable/v1.2'
+	xmlns:idm='http://impex-fp7.oeaw.ac.at'
+	xmlns:soap='http://schemas.xmlsoap.org/wsdl/soap/'
+	xmlns:wsdl='http://schemas.xmlsoap.org/wsdl/'
+	xmlns:xs='http://www.w3.org/2001/XMLSchema'
+>
+
+<!-- ====================== -->
+<!-- Data type definitions  -->
+<!-- ====================== -->
+
+<wsdl:types>
+
+	<xs:schema
+		version='0.9'
+		targetNamespace='http://impex-fp7.fmi.fi'
+		elementFormDefault='unqualified'
+		xmlns:vot='http://www.ivoa.net/xml/VOTable/v1.2'
+		xmlns:idm='http://impex-fp7.oeaw.ac.at'
+		xmlns='http://impex-fp7.fmi.fi'
+		xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+
+<!--
+		<xs:import namespace='http://impex-fp7.oeaw.ac.at' schemaLocation='http://impex-fp7.oeaw.ac.at/xsd/impex-1_0_2.xsd'/>
+		<xs:import namespace='http://www.ivoa.net/xml/VOTable/v1.2' schemaLocation='http://www.ivoa.net/xml/VOTable/VOTable-1.2.xsd'/>
+ -->
+
+		<!-- Load the external .xsd from local dist instead from the web -->
+		<xs:import namespace='http://impex-fp7.oeaw.ac.at' schemaLocation='http://impex-fp7.fmi.fi/ws/impex-1_0_2.xsd'/>
+		<xs:import namespace='http://www.ivoa.net/xml/VOTable/v1.2' schemaLocation='http://impex-fp7.fmi.fi/ws/VOTable-1.2.xsd'/>
+
+
+		<xs:element name='ResourceID' type='idm:ResourceID'/>
+		<xs:element name='Variable' type='Variable'/>
+		<!-- DPS: IMF is not used in here  <xs:element name='IMFClockAngle' type='xs:double'/> -->
+		<xs:element name='OutputFileType' type='OutputFormat' default='netCDF'/>
+		<xs:element name='InterpolationMethod' type='enumInterpolation' default='Linear'/>
+		<xs:element name='url_XYZ' type='xs:anyURI'>
+			<xs:annotation>
+				<xs:documentation>URL of the netCDF file containing the 3D coordinates. Suggested field name according to Spase/SimulationRun/SimulationDomain/CoordinatesLabel. The coordinate system must be Spase/SimulationRun/SimulationDomain/CoordinateSystem. Time is optional in the Input VOTable with a FIELD ucd='Time' </xs:documentation>
+			</xs:annotation>
+		</xs:element>
+		<xs:element name='StartTime' type='xs:dateTime'/>
+		<xs:element name='StopTime' type='xs:dateTime'/>
+		<xs:element name='Sampling' type='xs:duration'/>
+		<xs:element name='Population' type='Population'/>
+		<xs:element name='EnergyChannel' type='EnergyChannel'/>
+		<xs:element name='PlanePoint' type='idm:PlanePoint'/>
+		<xs:element name='PlaneNormalVector' type='idm:PlaneNormalVector'/>
+		<xs:element name='Resolution' type='xs:double'/>
+		<xs:element name='StepSize' type='xs:double'/>
+		<xs:element name='MaxSteps' type='xs:positiveInteger'/>
+		<xs:element name='StopCondition_Radius' type='xs:double'/>
+		<xs:element name='StopCondition_Region' type='Region'/>
+		<xs:element name='Spacecraft_name' type='Spacecraft'/>
+		<xs:element name='Direction' type='enumDirection' default='Forward'/>
+
+		<xs:simpleType name='enumDirection'>
+			<xs:restriction base='xs:string'>
+				<xs:enumeration value='Both'/>
+				<xs:enumeration value='Forward'/>
+				<xs:enumeration value='Backward'/>
+			</xs:restriction>
+		</xs:simpleType>
+
+		<xs:simpleType name='Variable'>
+			<xs:annotation>
+				<xs:documentation>List of individual parameters from the selected NumericalOutput separated by a comma. Identified by the ParameterKey. By default: all parameters within the NumericalOutput are returned</xs:documentation>
+			</xs:annotation>
+			<xs:list itemType='idm:ParameterKey'/>
+		</xs:simpleType>
+
+		<xs:simpleType name='Population'>
+			<xs:annotation>
+				<xs:documentation>List of population species from the selected NumericalOutput separated by a comma. Identified by the PopulationId. By default: all populations within the NumericalOutput are returned</xs:documentation>
+			</xs:annotation>
+			<xs:list itemType='idm:PopulationID'/>
+		</xs:simpleType>
+
+		<xs:simpleType name='EnergyChannel'>
+			<xs:annotation>
+				<xs:documentation>A list of Energy channel number (Ch0, Ch1, Ch2,...) separated by commas. The Energy of each energy channel is defined in the tree.xml. By default all energy channels are selected</xs:documentation>
+			</xs:annotation>
+			<xs:list itemType='idm:BandName'/>
+		</xs:simpleType>
+
+
+		<xs:simpleType name='OutputFormat'>
+			<xs:annotation>
+				<xs:documentation>Three formats supported: netCDF, VOTable and ASCII</xs:documentation>
+			</xs:annotation>
+			<xs:restriction base='xs:string'>
+				<xs:enumeration value='netCDF'/>
+				<xs:enumeration value='VOTable'/>
+				<xs:enumeration value='ASCII'/>
+			</xs:restriction>
+		</xs:simpleType>
+
+		<xs:simpleType name='enumInterpolation'>
+			<xs:annotation>
+				<xs:documentation>The enumInterpolation method to use: NearestGridPoint or Linear</xs:documentation>
+			</xs:annotation>
+			<xs:restriction base='xs:string'>
+				<xs:enumeration value='NearestGridPoint'/>
+				<xs:enumeration value='Linear'/>
+			</xs:restriction>
+		</xs:simpleType>
+
+		<xs:simpleType name='Region'>
+			<xs:annotation>
+				<xs:documentation>A cubic region defined by list: x_min x_max y_min y_max z_min z_max</xs:documentation>
+			</xs:annotation>
+			<xs:list itemType='xs:float'/>
+		</xs:simpleType>
+
+		<xs:simpleType name='Spacecraft'>
+			<xs:annotation>
+				<xs:documentation>Names of the spacecraft as defined by AMDA. See http://impex-fp7.oeaw.ac.at/fileadmin/user_upload/pdf/IMPEX_WP2_AMDA_WebServices_v1.4.pdf </xs:documentation>
+			</xs:annotation>
+			<xs:restriction base='xs:string'>
+				<xs:enumeration value='VEX'/>
+				<xs:enumeration value='MEX'/>
+				<xs:enumeration value='MGS'/>
+				<xs:enumeration value='MAVEN'/>
+				<xs:enumeration value='MESSENGER'/>
+				<xs:enumeration value='CLUSTER1'/>
+				<xs:enumeration value='CLUSTER2'/>
+				<xs:enumeration value='CLUSTER3'/>
+				<xs:enumeration value='CLUSTER4'/>
+				<xs:enumeration value='GEOTAIL'/>
+				<xs:enumeration value='IMP-8'/>
+				<xs:enumeration value='POLAR'/>
+			</xs:restriction>
+		</xs:simpleType>
+
+
+		<!-- DataPointValue definition -->
+		<xs:element name='getDataPointValue' type='DataPointValue'/>
+
+		<xs:complexType name='DataPointValue'>
+			<xs:sequence>
+				<xs:element minOccurs='1' maxOccurs='1' ref='ResourceID'>
+					<xs:annotation>
+						<xs:documentation>ResourceID of the NumericalOutput describing the 3D cube in which the interpolation is performed</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element minOccurs='0' maxOccurs='1' ref='Variable'/>
+				<xs:element minOccurs='1' maxOccurs='1' ref='url_XYZ'/>
+				<!-- extraParams -->
+				<xs:element name='extraParams' type='extraParams_getDataPointValue' minOccurs='0' maxOccurs='1'>
+					<xs:annotation>
+						<xs:documentation>An associative array of (key,value) pairs defining SMDB specific parameters</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+
+		<!-- (Key,Value) pair definitions for extraParams_getDataPointValue -->
+		<xs:complexType name='extraParams_getDataPointValue'>
+			<xs:sequence>
+				<xs:element minOccurs='0' maxOccurs='1' ref='InterpolationMethod'/>
+				<xs:element minOccurs='0' maxOccurs='1' ref='OutputFileType'/>
+			</xs:sequence>
+		</xs:complexType>
+
+
+
+		<!-- DataPointSpectra definition -->
+		<xs:element name='getDataPointSpectra' type='DataPointSpectra'/>
+
+		<xs:complexType name='DataPointSpectra'>
+			<xs:sequence>
+				<xs:element minOccurs='1' maxOccurs='1' ref='ResourceID'>
+					<xs:annotation>
+						<xs:documentation>If xpath=Spase/Simulation/ResourceID then the method applies to all species. If xpath = Spase/NumericalOutput/ResourceID then the method applies to the species</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+<!--
+				<xs:element minOccurs='0' maxOccurs='1' ref='Population'/>
+ -->
+				<xs:element minOccurs='1' maxOccurs='1' ref='url_XYZ'/>
+				<xs:element name='extraParams' type='extraParams_getDataPointSpectra' minOccurs='0' maxOccurs='1'> </xs:element>
+			</xs:sequence>
+		</xs:complexType>
+
+
+		<!-- (Key,Value) pair definitions for extraParams_getDataPointSpectra -->
+		<xs:complexType name='extraParams_getDataPointSpectra'>
+			<xs:sequence>
+				<xs:element minOccurs='0' maxOccurs='1' ref='InterpolationMethod'/>
+				<xs:element minOccurs='0' maxOccurs='1' ref='OutputFileType'/>
+				<xs:element minOccurs='0' maxOccurs='1' ref='EnergyChannel'/>
+			</xs:sequence>
+		</xs:complexType>
+
+
+
+		<!-- Surface definition -->
+		<xs:element name='getSurface' type='Surface'/>
+
+		<xs:complexType name='Surface'>
+			<xs:sequence>
+				<xs:element minOccurs='1' maxOccurs='1' ref='ResourceID'>
+					<xs:annotation>
+						<xs:documentation>ResourceID of the NumericalOutput describing the 3D cube in which the interpolation is performed</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element minOccurs='0' maxOccurs='1' ref='Variable'/>
+				<xs:element minOccurs='1' maxOccurs='1' ref='PlanePoint'/>
+				<xs:element minOccurs='1' maxOccurs='1' ref='PlaneNormalVector'/>
+				<xs:element name='extraParams' type='extraParams_getSurface' minOccurs='0'
+					maxOccurs='1'> </xs:element>
+			</xs:sequence>
+		</xs:complexType>
+
+		<!-- (Key,Value) pair definitions for extraParams_getSurface -->
+		<xs:complexType name='extraParams_getSurface'>
+			<xs:sequence>
+				<xs:element minOccurs='0' maxOccurs='1' ref='Resolution'/>
+				<xs:element minOccurs='0' maxOccurs='1' ref='OutputFileType'/>
+				<xs:element minOccurs='0' maxOccurs='1' ref='InterpolationMethod'/>
+			</xs:sequence>
+		</xs:complexType>
+
+
+		<!-- DataPointValueSpacecraft -->
+		<xs:element name='getDataPointValueSpacecraft' type='DataPointValueSpacecraft'/>
+
+		<xs:complexType name='DataPointValueSpacecraft'>
+			<xs:sequence>
+				<xs:element minOccurs='1' maxOccurs='1' ref='ResourceID'>
+					<xs:annotation>
+						<xs:documentation>ResourceID of the NumericalOutput describing the 3D cube in which the interpolation is performed</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element minOccurs='0' maxOccurs='1' ref='Variable'/>
+				<xs:element minOccurs='1' maxOccurs='1' ref='Spacecraft_name'/>
+				<xs:element minOccurs='1' maxOccurs='1' ref='StartTime'/>
+				<xs:element minOccurs='1' maxOccurs='1' ref='StopTime'/>
+				<xs:element minOccurs='1' maxOccurs='1' ref='Sampling'/>
+				<xs:element name='extraParams' type='extraParams_getDataPointValue' minOccurs='0' maxOccurs='1'> </xs:element>
+			</xs:sequence>
+		</xs:complexType>
+
+
+		<!-- DataPointSpectraSpacecraft -->
+		<xs:element name='getDataPointSpectraSpacecraft' type='DataPointSpectraSpacecraft'/>
+
+		<xs:complexType name='DataPointSpectraSpacecraft'>
+			<xs:sequence>
+				<xs:element ref='ResourceID' minOccurs='1' maxOccurs='1'>
+					<xs:annotation>
+						<xs:documentation>If xpath=Spase/SimulationRun/ResourceID then the method applies to all species. If xpath = Spase/NumericalOutput/ResourceID then the method applies to the species</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+<!--
+				<xs:element minOccurs='0' maxOccurs='1' ref='Population'/>
+ -->
+				<xs:element minOccurs='1' maxOccurs='1' ref='Spacecraft_name'/>
+				<xs:element minOccurs='1' maxOccurs='1' ref='StartTime'/>
+				<xs:element minOccurs='1' maxOccurs='1' ref='StopTime'/>
+				<xs:element minOccurs='1' maxOccurs='1' ref='Sampling'/>
+				<xs:element name='extraParams' type='extraParams_getDataPointSpectra'
+					minOccurs='0' maxOccurs='1'> </xs:element>
+			</xs:sequence>
+		</xs:complexType>
+
+
+		<!-- FieldLine -->
+		<xs:element name='getFieldLine' type='FieldLine'/>
+		<xs:complexType name='FieldLine'>
+			<xs:sequence>
+				<xs:element minOccurs='1' maxOccurs='1' ref='ResourceID'>
+					<xs:annotation>
+						<xs:documentation>If xpath=Spase/SimulationRun/ResourceID then the method applies to all species. If xpath = Spase/NumericalOutput/ResourceID then the method applies to the species </xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element minOccurs='0' maxOccurs='1' ref='Variable'/>
+				<xs:element minOccurs='1' maxOccurs='1' ref='url_XYZ'/>
+				<!-- extraParams -->
+				<xs:element name='extraParams' type='extraParams_getFieldLine' minOccurs='0'
+					maxOccurs='1'>
+					<xs:annotation>
+						<xs:documentation>An associative array of (key,value) pairs defining SMDB specific parameters</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+
+		<!-- (Key,Value) pair definitions for extraParams_getFieldLine -->
+		<xs:complexType name='extraParams_getFieldLine'>
+			<xs:sequence>
+				<xs:element minOccurs='0' maxOccurs='1' ref='Direction'/>
+				<xs:element minOccurs='0' maxOccurs='1' ref='StepSize'/>
+				<xs:element minOccurs='0' maxOccurs='1' ref='MaxSteps'/>
+				<xs:element minOccurs='0' maxOccurs='1' ref='StopCondition_Radius'/>
+				<xs:element minOccurs='0' maxOccurs='1' ref='StopCondition_Region'/>
+				<xs:element minOccurs='0' maxOccurs='1' ref='OutputFileType'/>
+			</xs:sequence>
+		</xs:complexType>
+
+
+		<!-- ParticleTrajectory -->
+		<xs:element name='getParticleTrajectory' type='ParticleTrajectory'/>
+		<xs:complexType name='ParticleTrajectory'>
+			<xs:sequence>
+				<xs:element minOccurs='1' maxOccurs='1' ref='ResourceID'>
+					<xs:annotation>
+						<xs:documentation>If xpath=Spase/SimulationRun/ResourceID then the method applies to all species. If xpath = Spase/NumericalOutput/ResourceID then the method applies to the species </xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element minOccurs='1' maxOccurs='1' ref='url_XYZ'/>
+				<!-- extraParams -->
+				<xs:element name='extraParams' type='extraParams_getParticleTrajectory' minOccurs='0'
+					maxOccurs='1'>
+					<xs:annotation>
+						<xs:documentation>An associative array of (key,value) pairs defining SMDB specific parameters</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+
+		<!-- (Key,Value) pair definitions for extraParams_getParticleTrajectory -->
+		<xs:complexType name='extraParams_getParticleTrajectory'>
+			<xs:sequence>
+				<xs:element ref='Direction' minOccurs='0' maxOccurs='1'/>
+				<xs:element ref='StepSize' minOccurs='0' maxOccurs='1'/>
+				<xs:element ref='MaxSteps' minOccurs='0' maxOccurs='1'/>
+				<xs:element ref='StopCondition_Radius' minOccurs='0' maxOccurs='1'/>
+				<xs:element ref='StopCondition_Region' minOccurs='0' maxOccurs='1'/>
+				<xs:element ref='InterpolationMethod' minOccurs='0' maxOccurs='1'/>
+				<xs:element ref='OutputFileType' minOccurs='0' maxOccurs='1'/>
+			</xs:sequence>
+		</xs:complexType>
+
+
+		<!-- MostRelevantRun -->
+
+		<xs:element name='Object' type='idm:enumRegion'/>
+		<xs:element name='RunCount' type='xs:positiveInteger' default='1'/>
+		<xs:element name='json_string' type='xs:string'/>
+
+		<xs:element name='getMostRelevantRun' type='MostRelevantRun'/>
+		<xs:complexType name='MostRelevantRun'>
+			<xs:sequence>
+				<xs:element ref='Object' minOccurs='1' maxOccurs='1'>
+					<xs:annotation>
+						<xs:documentation>Name of the planet/comet/asteroid ... as defined in SimulationRun/SimulatedRegion</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element ref='RunCount' minOccurs='0' maxOccurs='1'>
+					<xs:annotation>
+						<xs:documentation>Number of matching simulation runs returned</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name='SW_parameters' type='SW_parameter_list' minOccurs='1' maxOccurs='1'>
+					<xs:annotation>
+						<xs:documentation>An associative array of (key,value) pairs defining parameter criteria used in the search procedure</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+
+		<!-- (Key,Value) pair definitions for SW_parameters -->
+		<xs:complexType name='SW_parameter_list'>
+			<xs:sequence>
+				<xs:element name='SW_Density' type='SW_parameter' minOccurs='0' maxOccurs='1' />
+				<xs:element name='SW_Utot' type='SW_parameter' minOccurs='0' maxOccurs='1' />
+				<xs:element name='SW_Temperature' type='SW_parameter' minOccurs='0' maxOccurs='1' />
+				<xs:element name='SW_Btot' type='SW_parameter' minOccurs='0' maxOccurs='1' />
+				<xs:element name='SW_Bx' type='SW_parameter' minOccurs='0' maxOccurs='1' />
+				<xs:element name='SW_By' type='SW_parameter' minOccurs='0' maxOccurs='1' />
+				<xs:element name='SW_Bz' type='SW_parameter' minOccurs='0' maxOccurs='1' />
+				<xs:element name='Solar_F10.7' type='SW_parameter' minOccurs='0' maxOccurs='1' />
+				<xs:element name='SW_Function' type='SW_parameter' minOccurs='0' maxOccurs='1' />
+			</xs:sequence>
+		</xs:complexType>
+
+		<xs:complexType name='SW_parameter'>
+			<xs:sequence>
+				<xs:element name='value'    type='xs:double' minOccurs='1' maxOccurs='1'/>
+				<xs:element name='weight'   type='xs:double' default='1.0' minOccurs='0' maxOccurs='1'/>
+				<xs:element name='scale'    type='xs:double' minOccurs='0' maxOccurs='1'/>
+				<xs:element name='function' type='xs:string' minOccurs='0' maxOccurs='1'/>
+			</xs:sequence>
+		</xs:complexType>
+
+
+		<!-- VOTableURL -->
+		<xs:element name='getVOTableURL' type='VOTableURL'/>
+		<xs:complexType name='VOTableURL'>
+			<xs:sequence>
+				<xs:element minOccurs='0' maxOccurs='1' name='Table_name' type='xs:string'>
+					<xs:annotation>
+						<xs:documentation>Name of the VO table</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element minOccurs='0' maxOccurs='1' name='Description' type='xs:string'>
+					<xs:annotation>
+						<xs:documentation>Description of the data content</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element minOccurs='1' maxOccurs='unbounded' name='Fields' type='VOTable_field'>
+					<xs:annotation>
+						<xs:documentation>VOTable field attributes and data list</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+
+		<xs:complexType name='VOTable_field'>
+			<xs:sequence>
+				<!-- List of data values -->
+				<xs:element name='data' type='listOfValues' minOccurs='1' maxOccurs='1'/>
+
+				<!-- some VOTable Field attributes, not all and some more -->
+				<xs:element name='name'        type='xs:token'     minOccurs='1' maxOccurs='1'/>
+				<xs:element name='ID'          type='xs:ID'        minOccurs='0' maxOccurs='1'/>
+				<xs:element name='unit'        type='xs:token'     minOccurs='0' maxOccurs='1'/>
+				<xs:element name='datatype'    type='vot:dataType' minOccurs='0' maxOccurs='1'/>
+				<xs:element name='xtype'       type='xs:token'     minOccurs='0' maxOccurs='1'/>
+				<xs:element name='ucd'         type='vot:ucdType'  minOccurs='0' maxOccurs='1'/>
+				<xs:element name='utype'       type='xs:string'    minOccurs='0' maxOccurs='1'/>
+				<xs:element name='description' type='xs:string'    minOccurs='0' maxOccurs='1'/>
+				<xs:element name='arraysize'   type='xs:string'    minOccurs='0' maxOccurs='1'/>
+			</xs:sequence>
+		</xs:complexType>
+
+		<xs:simpleType name='listOfValues'>
+			<xs:list itemType='xs:string'/>
+		</xs:simpleType>
+
+
+		<!-- isAlive -->
+		<xs:element name='emptyElement'>
+			<xs:complexType>
+				<xs:sequence/>
+			</xs:complexType>
+		</xs:element>
+		<xs:element name='anyURI' type='xs:anyURI'/>
+		<xs:element name='boolean' type='xs:boolean'/>
+
+	</xs:schema>
+
+</wsdl:types>
+
+
+<!-- ============================================ -->
+<!-- Definition of the data being communicated    -->
+<!-- ============================================ -->
+
+
+<!-- Message Generic_Response -->
+<wsdl:message name='Generic_Response'>
+	<wsdl:part name='parameters' element='anyURI'/>
+</wsdl:message>
+
+<!-- Message DataPointValue -->
+<wsdl:message name='DataPointValue_Request'>
+	<wsdl:part name='parameters' element='getDataPointValue'/>
+</wsdl:message>
+
+<!-- Message DataPointValueSpacecraft -->
+<wsdl:message name='DataPointValueSpacecraft_Request'>
+	<wsdl:part name='parameters' element='getDataPointValueSpacecraft'/>
+</wsdl:message>
+
+<!-- Message DataPointSpectra -->
+<wsdl:message name='DataPointSpectra_Request'>
+	<wsdl:part name='parameters' element='getDataPointSpectra'/>
+</wsdl:message>
+
+<!-- Message Surface -->
+<wsdl:message name='Surface_Request'>
+	<wsdl:part name='parameters' element='getSurface'/>
+</wsdl:message>
+
+<!-- Message DataPointSpectraSpacecraft -->
+<wsdl:message name='DataPointSpectraSpacecraft_Request'>
+	<wsdl:part name='parameters' element='getDataPointSpectraSpacecraft'/>
+</wsdl:message>
+
+<!-- Message FieldLine -->
+<wsdl:message name='FieldLine_Request'>
+	<wsdl:part name='parameters' element='getFieldLine'/>
+</wsdl:message>
+
+<!-- Message ParticleTrajectory -->
+<wsdl:message name='ParticleTrajectory_Request'>
+	<wsdl:part name='parameters' element='getParticleTrajectory'/>
+</wsdl:message>
+
+<!-- Message MostRelevantRun -->
+<wsdl:message name='MostRelevantRun_Request'>
+	<wsdl:part name='parameters' element='getMostRelevantRun'/>
+</wsdl:message>
+
+<wsdl:message name="MostRelevantRun_Response">
+	<wsdl:part name='parameters' element='json_string'/>
+</wsdl:message>
+
+<!-- Message VOTableURL -->
+<wsdl:message name='VOTableURL_Request'>
+	<wsdl:part name='parameters' element='getVOTableURL'/>
+</wsdl:message>
+
+<!-- Message isAlive -->
+<wsdl:message name='isAlive_Request'>
+	<wsdl:part name='parameters' element='emptyElement'/>
+</wsdl:message>
+
+<wsdl:message name='isAlive_Response'>
+	<wsdl:part name='parameters' element='boolean'/>
+</wsdl:message>
+
+
+<!-- ==================================================================== -->
+<!-- Operations that can be performed and the messages that are involved  -->
+<!-- ==================================================================== -->
+
+<!-- PortType FMIservice -->
+<wsdl:portType name='Methods_FMI'>
+	<wsdl:operation name='getDataPointValue'>
+		<wsdl:input message='DataPointValue_Request'/>
+		<wsdl:output message='Generic_Response'/>
+	</wsdl:operation>
+	<wsdl:operation name='getDataPointValueSpacecraft'>
+		<wsdl:input message='DataPointValueSpacecraft_Request'/>
+		<wsdl:output message='Generic_Response'/>
+	</wsdl:operation>
+	<wsdl:operation name='getDataPointSpectra'>
+		<wsdl:input message='DataPointSpectra_Request'/>
+		<wsdl:output message='Generic_Response'/>
+	</wsdl:operation>
+	<wsdl:operation name='getSurface'>
+		<wsdl:input message='Surface_Request'/>
+		<wsdl:output message='Generic_Response'/>
+	</wsdl:operation>
+	<wsdl:operation name='getDataPointSpectraSpacecraft'>
+		<wsdl:input message='DataPointSpectraSpacecraft_Request'/>
+		<wsdl:output message='Generic_Response'/>
+	</wsdl:operation>
+	<wsdl:operation name='getFieldLine'>
+		<wsdl:input message='FieldLine_Request'/>
+		<wsdl:output message='Generic_Response'/>
+	</wsdl:operation>
+	<wsdl:operation name='getParticleTrajectory'>
+		<wsdl:input message='ParticleTrajectory_Request'/>
+		<wsdl:output message='Generic_Response'/>
+	</wsdl:operation>
+	<wsdl:operation name='getMostRelevantRun'>
+		<wsdl:input message='MostRelevantRun_Request'/>
+		<wsdl:output message='MostRelevantRun_Response'/>
+	</wsdl:operation>
+	<wsdl:operation name='getVOTableURL'>
+		<wsdl:input message='VOTableURL_Request'/>
+		<wsdl:output message='Generic_Response'/>
+	</wsdl:operation>
+	<wsdl:operation name='isAlive'>
+		<wsdl:input message='isAlive_Request'/>
+		<wsdl:output message='isAlive_Response'/>
+	</wsdl:operation>
+</wsdl:portType>
+
+
+
+<!-- ============================================= -->
+<!-- Data format and protocol for each port type   -->
+<!-- ============================================= -->
+
+<wsdl:binding name='Methods_FMISoapBinding' type='Methods_FMI'>
+	<soap:binding style='document' transport='http://schemas.xmlsoap.org/soap/http' />
+	<wsdl:operation name='getDataPointValue'>
+		<soap:operation soapAction='DataPointValue' />
+		<wsdl:input><soap:body use='literal' /></wsdl:input>
+		<wsdl:output><soap:body use='literal' /></wsdl:output>
+	</wsdl:operation>
+	<wsdl:operation name='getDataPointValueSpacecraft'>
+		<soap:operation soapAction='DataPointValueSpacecraft' />
+		<wsdl:input><soap:body use='literal' /></wsdl:input>
+		<wsdl:output><soap:body use='literal' /></wsdl:output>
+	</wsdl:operation>
+	<wsdl:operation name='getDataPointSpectra'>
+		<soap:operation soapAction='DataPointSpectra' />
+		<wsdl:input><soap:body use='literal' /></wsdl:input>
+		<wsdl:output><soap:body use='literal' /></wsdl:output>
+	</wsdl:operation>
+	<wsdl:operation name='getSurface'>
+		<soap:operation soapAction='Surface' />
+		<wsdl:input><soap:body use='literal' /></wsdl:input>
+		<wsdl:output><soap:body use='literal' /></wsdl:output>
+	</wsdl:operation>
+	<wsdl:operation name='getDataPointSpectraSpacecraft'>
+		<soap:operation soapAction='DataPointSpectraSpacecraft' />
+		<wsdl:input><soap:body use='literal' /></wsdl:input>
+		<wsdl:output><soap:body use='literal' /></wsdl:output>
+	</wsdl:operation>
+	<wsdl:operation name='getFieldLine'>
+		<soap:operation soapAction='FieldLine' />
+		<wsdl:input><soap:body use='literal' /></wsdl:input>
+		<wsdl:output><soap:body use='literal' /></wsdl:output>
+	</wsdl:operation>
+	<wsdl:operation name='getParticleTrajectory'>
+		<soap:operation soapAction='ParticleTrajectory' />
+		<wsdl:input><soap:body use='literal' /></wsdl:input>
+		<wsdl:output><soap:body use='literal' /></wsdl:output>
+	</wsdl:operation>
+	<wsdl:operation name='getMostRelevantRun'>
+		<soap:operation soapAction='MostRelevantRun' />
+		<wsdl:input><soap:body use='literal' /></wsdl:input>
+		<wsdl:output><soap:body use='literal' /></wsdl:output>
+	</wsdl:operation>
+ 	<wsdl:operation name='getVOTableURL'>
+		<soap:operation soapAction='VOTableURL' />
+		<wsdl:input><soap:body use='literal' /></wsdl:input>
+		<wsdl:output><soap:body use='literal' /></wsdl:output>
+	</wsdl:operation>
+ 	<wsdl:operation name='isAlive'>
+		<soap:operation soapAction='Alive' />
+		<wsdl:input><soap:body use='literal' /></wsdl:input>
+		<wsdl:output><soap:body use='literal' /></wsdl:output>
+	</wsdl:operation>
+</wsdl:binding>
+
+
+<!-- ========================== -->
+<!-- Address of the web service -->
+<!-- ========================== -->
+
+<!-- Methods FMI Service -->
+<wsdl:service name='Methods_FMI'>
+	<wsdl:port name='Methods_FMI' binding='Methods_FMISoapBinding'>
+		<soap:address location='http://impex-fp7.fmi.fi/ws/Methods_FMI.php' />
+	</wsdl:port>
+</wsdl:service>
+</wsdl:definitions>

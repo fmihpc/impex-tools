@@ -1,0 +1,54 @@
+Tools developed at the Finnish Meteorological Institute (FMI) as part
+of the IMPEx (Integrated Medium for Planetary Exploration) project.
+
+The tools provide access to FMI's global space plasma simulation
+models for solar systems bodies including the HYB and GUMICS codes.
+Data bases of simulation runs from these models are stored on FMI's
+online IMPEx servers and Hybrid Web Archive (HWA). The tools developed
+in the IMPEx project give users simple interfaces to download
+simulation run results with user defined parameter sets.
+
+The latest version of the FMI IMPEx tools can be downloaded at:
+
+https://github.com/fmihpc/impex-tools/
+
+Folders:
+
+matlab/: IMPEx Matlab tools by the FMI
+web/: IMPEx web services by the FMI
+
+FURTHER INFORMATION
+
+IMPEx:      http://impex-fp7.oeaw.ac.at/
+HWA:        http://hwa.fmi.fi/
+HYB:        http://hyb.fmi.fi/
+HYB GitHub: http://github.com/fmihpc/hyb/
+GUMICS:     http://gumics.fmi.fi/
+
+ACKNOWLEDGEMENTS
+
+We request acknowledging and citing the original tools when publishing
+or presenting results using them.
+
+Example acknowledgement text:
+
+"Analysis was performed using the IMPEx tools distributed under the
+open source GPL v3 license by the Finnish Meteorological Institute
+(github.com/fmihpc/impex-tools)."
+
+CONTACTS
+
+Finnish Meteorological Institute:
+
+Esa Kallio (esa.kallio@fmi.fi)
+Lasse Häkkinen (lasse.hakkinen@fmi.fi)
+Riku Jarvinen (riku.jarvinen@fmi.fi)
+Tiera Laitinen (tiera.laitinen@fmi.fi)
+
+LICENSE
+
+This package is free software. You may modify and redistribute it
+under the terms of the GNU General Public License version 3 or any
+later version. See the COPYING file for the formal license statement.
+
+Copyright (c) 2014- Finnish Meteorological Institute

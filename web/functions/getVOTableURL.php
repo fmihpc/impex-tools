@@ -1,0 +1,257 @@
+<?php
+
+// This file is part of the FMI IMPEx tools.
+//
+// Copyright 2014- Finnish Meteorological Institute
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// ######################################################################################################
+//
+// 								      		getVOTableURL.php
+//
+// ######################################################################################################
+// =====================================================================================================
+// This method generates a simple VOTable file from given input parameters and returns an url to the
+// file. There are two purposes for this method:
+// 1. Provide the user with a simple way convert data to VOTable format
+// 2. Provide the user a server where to store the VOTable file so that it is ready to be used as
+//    an input for other IMPEx methods which require an url to a file as an input parameter.
+//
+// Input parameters:
+//
+//	$params = array (
+//		'Table_name'      'name' attribute of the <TABLE> element in VOTable file
+//		'Description'     <DESCRIPTION> element inside the <TABLE> element in the VOTable file
+//		'Fields'	  x   The 'Fields' input parameter is an array of 'VOTable field's.
+//                        Each 'VOTable field' is an associative array of possible VOTable attributes
+//                        ('ID', 'name', 'unit', 'datatype', 'xtype', 'ucd', 'utype', 'xtype') +
+//                        + field 'data' which is an array containing the actual data for given field.
+//                        The data arrays for each VOTable field must be of equal length. For some
+//                        standard quantities (Time,X,Y,Z,Ux,Uy,Uz,Utot,Bx,y,Bz,Btot) it is necessary
+//                        to define only the 'name' and 'data' attributes in the VOTable field.
+//  )
+//
+//	Parameters indicated by 'x' are mandatory.
+// =====================================================================================================
+
+// =====================================================================================================
+// Version 2.0  2015-05-31	First release of the new code.
+// =====================================================================================================
+
+function getVOTableURL($params) {
+
+	global $ucd_table;
+	global $Units;
+
+	$Missing_data_marker = "NaN";
+
+	// ------------------------------------------------------------
+	// Log caller info and method name.
+	// ------------------------------------------------------------
+
+	log_method("getVOTableURL", $params);
+
+
+	// ---------------------------------------------------------
+	// Define some default attributes for often used parameters
+	// ucd codes are defined in ucd.php
+	// units are defined in units.php
+	// ---------------------------------------------------------
+
+	$field_attributes = array(
+		'time' => array('name' => 'Time',  'xtype' => 'dateTime', 'arraysize' => '*'),
+		'x'    => array('name' => 'X'),
+		'y'    => array('name' => 'Y'),
+		'z'    => array('name' => 'Z'),
+		'ux'   => array('name' => 'Ux'),
+		'uy'   => array('name' => 'Uy'),
+		'uz'   => array('name' => 'Uz'),
+		'utot' => array('name' => 'Utot'),
+		'bx'   => array('name' => 'Bx'),
+		'by'   => array('name' => 'By'),
+		'bz'   => array('name' => 'Bz'),
+		'btot' => array('name' => 'Btot'),
+		'mass' => array('name' => 'Mass'),
+		'density'     => array('name' => 'Density'),
+		'temperature' => array('name' => 'Temperature')
+	);
+
+	// Add 'ucd', 'unit', 'ID' and 'datatype' attributes
+	foreach ($field_attributes as $key => $value) {
+		$field_attributes[$key]['ID'] = 'col_' . $field_attributes[$key]['name'];
+		if (isset($ucd_table[$key])) $field_attributes[$key]['ucd'] = $ucd_table[$key];
+		if (isset($Units[$key])) $field_attributes[$key]['unit'] = $Units[$key];
+		if ($key == 'time')
+			$field_attributes[$key]['datatype'] = 'char';
+		else
+			$field_attributes[$key]['datatype'] = 'float';
+	}
+
+
+	// ------------------------------------------------
+	// 'Table_name' and 'Description' input parameters
+	// ------------------------------------------------
+
+	$VO_table_name  = (isset($params->{'Table_name'})) ? $params->{'Table_name'} : "VOTable";
+	$VO_description = (isset($params->{'Description'})) ? $params->{'Description'} : "VOTable file generated by FMI web service getVOTableURL";
+
+	// -----------------------------------------------------------------
+	// Read the field parameters into an array and set their attributes
+	// -----------------------------------------------------------------
+
+	$VO_fields = array();	// User defined fields with all attributes will be stored here
+	if (!isset($params->{'Fields'})) throw_error('Client', ERROR_INPUT_PARAM_NOT_DEFINED . 'Fields');
+
+	// If there is only one field then SOAP will convert the $params->{'Fields'} array into a single object !!!!!
+	// This is a bug although they claim it is a feature ???? How can inconsistent behaviour be a feature ???
+
+	if (is_object($params->{'Fields'}))
+		$new_params = array(0 => $params->{'Fields'});
+	else
+		$new_params = $params->{'Fields'};
+
+	foreach($new_params as $field) {
+
+		if (!isset($field->{'name'})) throw_error('Client', ERROR_INPUT_PARAM_NOT_DEFINED . 'name');
+		if (!isset($field->{'data'})) throw_error('Client', ERROR_INPUT_PARAM_NOT_DEFINED . 'data');
+
+		$key = strtolower($field->{'name'});
+		$VO_fields[$key] = array();
+
+		if (isset($field_attributes[$key])) {	// Quantity is some of the predefined quantities
+			foreach($field_attributes[$key] as $attr_key => $attr_value) {
+				$VO_fields[$key][$attr_key] = isset($field->{$attr_key}) ? $field->{$attr_key} : $attr_value;
+			}
+ 			$VO_fields[$key]['name'] = $field_attributes[$key]['name'];	// Set the key value from predefined list and not from user given name.
+
+			// User defined field may have some more additional attributes
+			foreach ($field as $name => $value) {
+				if (($name !== 'data') and !in_array($name, array_keys($field_attributes[$key]))) $VO_fields[$key][$name] = $value;
+			}
+		} else {	// Quantity is not any of the predefined quantities
+			foreach ($field as $name => $value) {
+				if ($name !== 'data')
+					$VO_fields[$key][$name] = $value;
+			}
+			if (!isset($VO_fields[$key]['ID'])) $VO_fields[$key]['ID'] = 'col_' . $field->{'name'};
+		}
+
+		// Read the data into an array
+		$VO_fields[$key]['data'] = preg_split("/[\s,]+/", $field->{'data'});
+	}
+
+	// Check that all data arrays are of same length
+
+	$data_count = count($VO_fields[array_keys($VO_fields)[0]]['data']);	// Length of first parameter's data array
+	foreach($VO_fields as $key => $value) {
+		if (count($VO_fields[$key]['data']) != $data_count) throw_error('Client', ERROR_ARRAY_LENGTH);
+	}
+
+
+	// ---------------------------------------------------------------------------------------------------------
+	// Check that there are no illegal input parameters defined. These should already be stripped out by SOAP ?
+	// ---------------------------------------------------------------------------------------------------------
+
+	foreach($params as $key => $value) {
+		switch ($key) {
+			case "Table_name"  : break;
+			case "Description" : break;
+			case "Fields"      : break;
+			default : throw_error('Client', ERROR_ILLEGAL_PARAM . $key); break;
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Now all input parameters have been checked and they should be OK.
+	// ------------------------------------------------------------------
+
+	// --------------------------
+	// Generate the VOTable file
+	// --------------------------
+
+	// Create the 'votable' file
+	$votable_filename = "VOT_" . random_string(10) . ".vot";
+	$votfile = fopen(WWW_DATA_DIR . "/" . $votable_filename, "w");
+	if ($votfile === FALSE) throw_error('Server', ERROR_INTERNAL_TMP_FILE);
+
+	// Write the header to 'votable' file
+	fwrite($votfile,"<?xml version='1.0'?>" . "\n");
+	fwrite($votfile,'<VOTABLE version="1.2"' . "\n");
+	fwrite($votfile,' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' . "\n");
+	fwrite($votfile,' xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.2 http://www.ivoa.net/xml/VOTable/v1.2"' . "\n");
+	fwrite($votfile,' xmlns="http://www.ivoa.net/xml/VOTable/v1.2">' . "\n");
+
+	fwrite($votfile,'<!--' . "\n");
+	fwrite($votfile,' ! VOTable written by FMI web service getVOTableURL' . "\n");
+	fwrite($votfile,' ! ' . gmdate(DATE_ISO8601) . "\n");
+	fwrite($votfile,' !-->' . "\n");
+
+	fwrite($votfile,'<RESOURCE>' . "\n");
+
+	// Write some metadata information
+	fwrite($votfile,'<TABLE name="' . $VO_table_name . '" nrows="' . $data_count . '">'. "\n");
+	fwrite($votfile,'<DESCRIPTION>' . "\n");
+	fwrite($votfile,"  " . $VO_description . "\n");
+	fwrite($votfile,'</DESCRIPTION>' . "\n");
+
+	// Write the fields and their metadata.
+	foreach($VO_fields as $key => $value) {
+		fwrite($votfile,'<FIELD ID="' . $VO_fields[$key]['ID'] . '" ');		// Start with ID which is mandatory
+		foreach($value as $attr_key => $attr_value) {						// Other attributes
+			if (!in_array($attr_key, array("data","ID","description"))) {	// 'description' will be written as a sub-element of <FIELD>
+				if ($attr_value !== "")
+					fwrite($votfile, $attr_key . '="' . $attr_value . '" ');
+			}
+		}
+		if (isset($VO_fields[$key]['description'])) {
+			fwrite($votfile,'>' . "\n");
+			fwrite($votfile, "\t" . '<DESCRIPTION>' . $VO_fields[$key]['description'] . '</DESCRIPTION>' . "\n");
+//			fwrite($votfile, "\t" . '<VALUES NULL="-1.e+31"/>' . "\n");
+			fwrite($votfile,'</FIELD>' . "\n");
+		}
+		else
+			fwrite($votfile,'/>' . "\n");
+	}
+
+	// Write the data
+	fwrite($votfile,'<DATA>' . "\n");
+	fwrite($votfile,'<TABLEDATA>' . "\n");
+
+	for ($i = 0; $i < $data_count; $i++ ) {
+		fwrite($votfile,"\t" . "<TR>" . "\n");
+		foreach($VO_fields as $key => $value) {
+			fwrite($votfile,"\t\t" . '<TD>');
+			$data_value = $VO_fields[$key]['data'][$i];
+			if ($data_value != $Missing_data_marker)
+				fwrite($votfile, $data_value);
+			else
+				fwrite($votfile, $Missing_data_marker);
+
+			fwrite($votfile,'</TD>' . "\n");
+		}
+		fwrite($votfile,"\t" . '</TR>' . "\n");
+	}
+
+	fwrite($votfile,'</TABLEDATA>' . "\n");
+	fwrite($votfile,'</DATA>' . "\n");
+	fwrite($votfile,'</TABLE>' . "\n");
+	fwrite($votfile,'</RESOURCE>' . "\n");
+	fwrite($votfile,'</VOTABLE>' . "\n");
+
+	fclose($votfile);
+
+	return(log_message(URL_DATA_DIR . "/" . $votable_filename));
+}	// THE END
+?>
